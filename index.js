@@ -37,7 +37,7 @@ async function* parseHtml(fileName) {
   const rows = dom.window.document.querySelectorAll('div.o-chart-results-list-row-container')
   if (rows.length !== 100) {
     console.error('Entries are not 100!', fileName)
-    throw new StopIteration('Entries are not 100!')
+    throw new Error('Entries are not 100!')
   }
   for (let i = 0; i < rows.length; ++i) {
     const row = rows[i]
@@ -45,7 +45,7 @@ async function* parseHtml(fileName) {
     const artist = row.querySelector('h3#title-of-a-story + span')?.firstChild.nodeValue.trim()
     if (title === null || artist === null) {
       console.error('Unexpected HTML!', position, title, artist)
-      throw new StopIteration('Unexpected HTML!')
+      throw new Error('Unexpected HTML!')
     }
     yield { position: i + 1, artist, title }
   }
@@ -130,6 +130,7 @@ const main = async () => {
         await ingest(date, jsonlFileName)
       }
     }
+    continue
 
     try {
       await store(jsonlFileName)
