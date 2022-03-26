@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/passport90/billboard-scraper#readme",
   "dependencies": {
+    "jsdom": "^19.0.0",
     "undici": "^4.16.0"
   }
 }
