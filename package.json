@@ -1,0 +1,25 @@
+{
+  "name": "billboard-scraper",
+  "version": "1.0.0",
+  "description": "Billboard Hot 100 scraper",
+  "engines": {
+    "node": "^17"
+  },
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/passport90/billboard-scraper.git"
+  },
+  "author": "Marhadiasha Kusumawardhana",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/passport90/billboard-scraper/issues"
+  },
+  "homepage": "https://github.com/passport90/billboard-scraper#readme",
+  "dependencies": {
+    "undici": "^4.16.0"
+  }
+}
