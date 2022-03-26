@@ -29,17 +29,20 @@ const download = async (date, htmlFileName) => {
     writeStream.write(data)
   }
   writeStream.end()
-  console.info(`HTML for ${date.toISODate()} downloaded.`)
 }
 
 async function* parseHtml(fileName) {
-  console.info(`Parsing ${fileName} and write the result to JSONL...`)
+  console.info(`Parsing ${fileName}...`)
   const dom = await JSDOM.fromFile(fileName)
   const rows = dom.window.document.querySelectorAll('div.o-chart-results-list-row-container')
   for (const row of rows) {
-    const position = row.querySelector('li.o-chart-results-list__item:first-child > span').firstChild.nodeValue.trim()
-    const title = row.querySelector('h3#title-of-a-story').firstChild.nodeValue.trim()
-    const artist = row.querySelector('h3#title-of-a-story + span').firstChild.nodeValue.trim()
+    const position = row.querySelector('li.o-chart-results-list__item:first-child > span')?.firstChild.nodeValue.trim()
+    const title = row.querySelector('h3#title-of-a-story')?.firstChild.nodeValue.trim()
+    const artist = row.querySelector('h3#title-of-a-story + span')?.firstChild.nodeValue.trim()
+    if (position === null || title === null || artist === null) {
+      console.error('Unexpected HTML', position, title, artist)
+      throw new Error('Unexpected HTML')
+    }
     yield { position, artist, title }
   }
 }
@@ -51,6 +54,7 @@ const ingest = async (date, jsonlFileName) => {
   }
 
   const writeStream = fs.createWriteStream(jsonlFileName, { flags: 'a' })
+  console.info(`Writing parsed HTML to ${jsonlFileName}...`)
   for await (const { position, artist, title } of parseHtml(htmlFileName)) {
     writeStream.write(JSON.stringify([date.weekYear, date.weekNumber, position, artist, title]))
     writeStream.write('\n')
@@ -70,7 +74,7 @@ const store = async jsonlFileName => {
   pgClient.connect()
   await pgClient.query('BEGIN')
 
-  console.info('Inserting data to database')
+  console.info(`Inserting data from ${jsonlFileName} to database...`)
   try {
     const rl = readline.createInterface(fs.createReadStream(jsonlFileName), { crlfDelay: Infinity })
     for await (const line of rl) {
@@ -101,8 +105,8 @@ const main = async () => {
     console.error('Date parse error!', yearInput)
     return
   }
-  const dateFrom = DateTime.fromISO(`${yearInput}-W01-1T00:00Z`)
-  const dateTo = DateTime.fromISO(`${parseInt(yearInput) + 1}-W01-1T00:00Z`)
+  const dateFrom = DateTime.fromISO(`${yearInput}-W01-6T00:00Z`)
+  const dateTo = DateTime.fromISO(`${parseInt(yearInput) + 1}-W01-6T00:00Z`)
   if (!(dateFrom.isValid && dateTo.isValid)) {
     console.error('Date parse error!', yearInput)
     return
@@ -110,7 +114,7 @@ const main = async () => {
 
   const jsonlFileName = `jsonl/${yearInput}.jsonl`
   if (!fs.existsSync(jsonlFileName)) {
-    for (let date = dateFrom.set({ weekday: 5 }); +date < +dateTo; date = date.plus({ weeks: 1 })) {
+    for (let date = dateFrom; +date < +dateTo; date = date.plus({ weeks: 1 })) {
       await ingest(date, jsonlFileName)
     }
   }
