@@ -35,15 +35,19 @@ async function* parseHtml(fileName) {
   console.info(`Parsing ${fileName}...`)
   const dom = await JSDOM.fromFile(fileName)
   const rows = dom.window.document.querySelectorAll('div.o-chart-results-list-row-container')
-  for (const row of rows) {
-    const position = row.querySelector('li.o-chart-results-list__item:first-child > span')?.firstChild.nodeValue.trim()
+  if (rows.length !== 100) {
+    console.error('Entries are not 100!', fileName)
+    throw new StopIteration('Entries are not 100!')
+  }
+  for (let i = 0; i < rows.length; ++i) {
+    const row = rows[i]
     const title = row.querySelector('h3#title-of-a-story')?.firstChild.nodeValue.trim()
     const artist = row.querySelector('h3#title-of-a-story + span')?.firstChild.nodeValue.trim()
-    if (position === null || title === null || artist === null) {
-      console.error('Unexpected HTML', position, title, artist)
-      throw new Error('Unexpected HTML')
+    if (title === null || artist === null) {
+      console.error('Unexpected HTML!', position, title, artist)
+      throw new StopIteration('Unexpected HTML!')
     }
-    yield { position, artist, title }
+    yield { position: i + 1, artist, title }
   }
 }
 
@@ -79,6 +83,10 @@ const store = async jsonlFileName => {
     const rl = readline.createInterface(fs.createReadStream(jsonlFileName), { crlfDelay: Infinity })
     for await (const line of rl) {
       const values = JSON.parse(line)
+      if (values[0] === 1984 && values[1] === 7 && values[4] === "Remember The Nights") {
+        values[2] = "87"
+      }
+
       await pgClient.query(
         'INSERT INTO raw_chart (year, week, position, artist, title) VALUES ($1, $2, $3, $4, $5)',
         values,
@@ -122,9 +130,11 @@ const main = async () => {
         await ingest(date, jsonlFileName)
       }
     }
+
     try {
       await store(jsonlFileName)
     } catch (err) {
+      throw err
       // If error raised, reparse
       console.error(err)
       console.info(`Reparsing ${year}...`)
