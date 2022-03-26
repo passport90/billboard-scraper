@@ -106,5 +106,5 @@ dist
 # Downloaded HTML files
 html/
 
-# Generated CSV files
-csv/
+# Generated JSONL files
+jsonl/
