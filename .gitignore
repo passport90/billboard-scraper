@@ -105,3 +105,6 @@ dist
 
 # Downloaded HTML files
 html/
+
+# Generated CSV files
+csv/
