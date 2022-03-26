@@ -94,33 +94,46 @@ const store = async jsonlFileName => {
 }
 
 const main = async () => {
-  if (process.argv.length < 3) {
-    console.error('Missing year!')
-    console.info('Example: node index.js 2020')
+  if (process.argv.length < 4) {
+    console.error('Missing year start and end!')
+    console.info('Example: node index.js 1998 2020')
     return
   }
 
-  const yearInput = parseInt(process.argv[2])
-  if (isNaN(yearInput)) {
-    console.error('Date parse error!', yearInput)
+  const yearStart = parseInt(process.argv[2])
+  const yearEnd = parseInt(process.argv[3])
+  if (isNaN(yearStart) || isNaN(yearEnd)) {
+    console.error('Date parse error!', yearStart, yearEnd)
     return
   }
-  const dateFrom = DateTime.fromISO(`${yearInput}-W01-6T00:00Z`)
-  const dateTo = DateTime.fromISO(`${parseInt(yearInput) + 1}-W01-6T00:00Z`)
-  if (!(dateFrom.isValid && dateTo.isValid)) {
-    console.error('Date parse error!', yearInput)
-    return
-  }
-  const start = DateTime.now()
 
-  const jsonlFileName = `jsonl/${yearInput}.jsonl`
-  if (!fs.existsSync(jsonlFileName)) {
-    for (let date = dateFrom; +date < +dateTo; date = date.plus({ weeks: 1 })) {
-      await ingest(date, jsonlFileName)
+  for (let year = yearStart; year <= yearEnd; ++year) {
+    const dateFrom = DateTime.fromISO(`${year}-W01-6T00:00Z`)
+    const dateTo = DateTime.fromISO(`${parseInt(year) + 1}-W01-6T00:00Z`)
+    if (!(dateFrom.isValid && dateTo.isValid)) {
+      console.error('Date parse error!', year)
+      return
     }
+    const start = DateTime.now()
+
+    const jsonlFileName = `jsonl/${year}.jsonl`
+    if (!fs.existsSync(jsonlFileName)) {
+      for (let date = dateFrom; +date < +dateTo; date = date.plus({ weeks: 1 })) {
+        await ingest(date, jsonlFileName)
+      }
+    }
+    try {
+      await store(jsonlFileName)
+    } catch (err) {
+      // If error raised, reparse
+      console.error(err)
+      console.info(`Reparsing ${year}...`)
+      fs.unlinkSync(jsonlFileName)
+      --year
+      continue
+    }
+    console.info(`Time elapsed: ${Duration.fromMillis(+(DateTime.now() - +start)).toHuman()}.`)
   }
-  await store(jsonlFileName)
-  console.info(`Time elapsed: ${Duration.fromMillis(+(DateTime.now() - +start)).toHuman()}.`)
 }
 
 main().then(() => console.info('Done!')).catch(console.error)
