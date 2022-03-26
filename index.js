@@ -1,6 +1,6 @@
 const fs = require('fs')
 const { request } = require('undici')
-const { DateTime } = require('luxon')
+const { DateTime, Duration } = require('luxon')
 const { JSDOM } = require('jsdom')
 const { Client: PgClient } = require('pg')
 const readline = require('readline')
@@ -111,6 +111,7 @@ const main = async () => {
     console.error('Date parse error!', yearInput)
     return
   }
+  const start = DateTime.now()
 
   const jsonlFileName = `jsonl/${yearInput}.jsonl`
   if (!fs.existsSync(jsonlFileName)) {
@@ -119,6 +120,7 @@ const main = async () => {
     }
   }
   await store(jsonlFileName)
+  console.info(`Time elapsed: ${Duration.fromMillis(+(DateTime.now() - +start)).toHuman()}.`)
 }
 
 main().then(() => console.info('Done!')).catch(console.error)
