@@ -125,7 +125,7 @@ const main = async () => {
     if (year === 1958) {
       dateFrom = DateTime.fromISO(`${year}-W31-6T00:00Z`)
     } else {
-      dateFrom = DateTime.fromISO(`${year}-01-6T00:00Z`)
+      dateFrom = DateTime.fromISO(`${year}-W01-6T00:00Z`)
     }
 
     const dateTo = DateTime.fromISO(`${parseInt(year) + 1}-W01-6T00:00Z`)
