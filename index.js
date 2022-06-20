@@ -37,7 +37,7 @@ async function* parseHtml(fileName) {
   const rows = dom.window.document.querySelectorAll('div.o-chart-results-list-row-container')
   if (rows.length !== 100) {
     console.error('Entries are not 100!', fileName)
-    throw new Error('Entries are not 100!')
+    return
   }
   for (let i = 0; i < rows.length; ++i) {
     const row = rows[i]
@@ -115,8 +115,19 @@ const main = async () => {
     return
   }
 
+  if (yearStart < 1956 || yearEnd > 2021) {
+    console.error('Year outside available range of 1956-2021!', yearStart, yearEnd)
+    return
+  }
+
   for (let year = yearStart; year <= yearEnd; ++year) {
-    const dateFrom = DateTime.fromISO(`${year}-W01-6T00:00Z`)
+    let dateFrom
+    if (year === 1956) {
+      dateFrom = DateTime.fromISO(`${year}-W01-6T00:00Z`)
+    } else {
+      dateFrom = DateTime.fromISO(`${year}-W31-6T00:00Z`)
+    }
+
     const dateTo = DateTime.fromISO(`${parseInt(year) + 1}-W01-6T00:00Z`)
     if (!(dateFrom.isValid && dateTo.isValid)) {
       console.error('Date parse error!', year)
@@ -130,7 +141,6 @@ const main = async () => {
         await ingest(date, jsonlFileName)
       }
     }
-    continue
 
     try {
       await store(jsonlFileName)
