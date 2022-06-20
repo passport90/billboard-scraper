@@ -115,17 +115,17 @@ const main = async () => {
     return
   }
 
-  if (yearStart < 1956 || yearEnd > 2021) {
-    console.error('Year outside available range of 1956-2021!', yearStart, yearEnd)
+  if (yearStart < 1958 || yearEnd > 2021) {
+    console.error('Year outside available range of 1958-2021!', yearStart, yearEnd)
     return
   }
 
   for (let year = yearStart; year <= yearEnd; ++year) {
     let dateFrom
-    if (year === 1956) {
-      dateFrom = DateTime.fromISO(`${year}-W01-6T00:00Z`)
-    } else {
+    if (year === 1958) {
       dateFrom = DateTime.fromISO(`${year}-W31-6T00:00Z`)
+    } else {
+      dateFrom = DateTime.fromISO(`${year}-01-6T00:00Z`)
     }
 
     const dateTo = DateTime.fromISO(`${parseInt(year) + 1}-W01-6T00:00Z`)
