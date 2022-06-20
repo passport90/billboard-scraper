@@ -138,6 +138,9 @@ const main = async () => {
     const jsonlFileName = `jsonl/${year}.jsonl`
     if (!fs.existsSync(jsonlFileName)) {
       for (let date = dateFrom; +date < +dateTo; date = date.plus({ weeks: 1 })) {
+        if (date.toISOWeekDate() === '1961-W52-6') {
+          continue
+        }
         await ingest(date, jsonlFileName)
       }
     }
