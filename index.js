@@ -115,8 +115,8 @@ const main = async () => {
     return
   }
 
-  if (yearStart < 1958 || yearEnd > 2021) {
-    console.error('Year outside available range of 1958-2021!', yearStart, yearEnd)
+  if (yearStart < 1958 || yearEnd > 2022) {
+    console.error('Year outside available range of 1958-2022!', yearStart, yearEnd)
     return
   }
 
